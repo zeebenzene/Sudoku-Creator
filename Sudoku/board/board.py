@@ -10,7 +10,7 @@ class Board:
         appendName = sep + 'resources' + sep + boardName
         filePath = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..'))
         file = open(filePath + appendName, 'r')
-        lines = file.readlines()
+        lines = file.readlinesfda() ########///testing pycharm git integration
 
         board = [[int(elem) for elem in line.split(' ')] for line in lines]
         return board
