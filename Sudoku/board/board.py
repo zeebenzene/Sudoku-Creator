@@ -24,17 +24,17 @@ class Board:
         # while there are still free elements
         while(len(self.freePool)> 0):
             location = random.choice(self.freePool)  #get a random free location
-            potential = self.getPotential(tried[location],location[0],location[1])  #get the available elements for that location
+            potential = self.getPotential(tried,location[0],location[1])  #get the available elements for that location
             if(len(potential) ==0):
                 while(len(potential) == 0):
                     if(len(iterations) ==0):
-                        print("Puzzle could not be created") #This should hopefully neve happen
+                        print("Puzzle could not be created") #This should hopefully never happen
                         break
                     lastTried = iterations[-1]
                     iterations.remove(lastTried)
                     self.wholeBoard[lastTried[0],lastTried[1]] = 0
                     self.freePool.append(lastTried)
-                    potential = self.getPotential(tried[lastTried],lastTried[0],lastTried[1])
+                    potential = self.getPotential(tried,lastTried[0],lastTried[1])
 
             answer = random.choice(potential)
             self.wholeBoard[location[0],location[1]] = answer
@@ -71,10 +71,11 @@ class Board:
         else:
             return True
 
-    def getPotential(self,lst,x,y):
+    def getPotential(self,tried,location,x,y):
         potential = self.getAvailableInSpace(self,x,y)
-        for ele in lst:
-            potential.remove(ele)
+        if (x,y) in tried:    
+            for ele in tried(x,y):
+                potential.remove(ele)
         return potential
 
     def getElement(self, x, y):
