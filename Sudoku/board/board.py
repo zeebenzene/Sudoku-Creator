@@ -1,25 +1,81 @@
 import os
+import random
 
+
+# wholeBoard = [[i for i in range(1,10)] for x in range(9)]
 
 class Board:
     def __init__(self, boardName):
-        self.wholeBoard = self.openBoard(boardName)
+        self.wholeBoard = [[0 for i in range(1,10)] for x in range(9)]
+        self.freePool = self.createFreePool()
+
+    def createSolvedBoard(self):
+        # select 9 random locations from the free pool and put numbers 1 - 9 in them
+        for i in range(1,10):
+            location = random.choice(self.freePool)
+            x = location[0]
+            y = location[1]
+            self.wholeBoard[x][y] = i
+            self.freePool.remove(location)
+
+
+        tried = {}
+        iterations = []
+        # while there are still free elements
+        while(len(self.freePool)> 0):
+            location = random.choice(self.freePool)  #get a random free location
+            potential = self.getPotential(tried[location],location[0],location[1])  #get the available elements for that location
+            if(len(potential) ==0):
+                while(len(potential) == 0):
+                    if(len(iterations) ==0):
+                        print("Puzzle could not be created") #This should hopefully neve happen
+                        break
+                    lastTried = iterations[-1]
+                    iterations.remove(lastTried)
+                    self.wholeBoard[lastTried[0],lastTried[1]] = 0
+                    self.freePool.append(lastTried)
+                    potential = self.getPotential(tried[lastTried],lastTried[0],lastTried[1])
+
+            answer = random.choice(potential)
+            self.wholeBoard[location[0],location[1]] = answer
+            iterations.append(location)
+            self.freePool.remove(location)
+            if(location not in tried):
+                tried[location] = [answer]
+            else:
+                tried[location].append(answer)
+        return self.wholeBoard
 
     def openBoard(self, boardName):
         sep = os.sep
         appendName = sep + 'resources' + sep + boardName
         filePath = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..'))
         file = open(filePath + appendName, 'r')
-        lines = file.readlinesfda() ########///testing pycharm git integration
+        lines = file.readlines()
 
         board = [[int(elem) for elem in line.split(' ')] for line in lines]
         return board
+
+    def createFreePool(self):
+        freePool = []
+        for i in range(9):
+            for j in range(9):
+                if(self.getElement(i,j) == 0):
+                    freePool.append((i,j))
+        return freePool
+
 
     def isDuplicateIn(self, list, value):
         if list.count(value) == 1:
             return False
         else:
             return True
+
+    def getPotential(self,lst,x,y):
+        potential = self.getAvailableInSpace(self,x,y)
+        for ele in lst:
+            potential.remove(ele)
+        return potential
 
     def getElement(self, x, y):
         return self.wholeBoard[y][x]
@@ -41,7 +97,7 @@ class Board:
         return subBoardAsList
 
     def getAvaliableInSpace(self, x, y):
-         if self.getElement(x, y) == 0:
+        if self.getElement(x, y) == 0:
             fullList = [i for i in range(1, 10)]
             rowAvail = self.getAvailableInRow(y)
             colAvail = self.getAvaliableInColumn(x)
@@ -49,8 +105,8 @@ class Board:
 
             filterLambda = lambda x: (x in rowAvail) and (x in colAvail) and (x in subAvail)
             return filter(filterLambda, fullList)
-         else:
-             return "filled"
+        else:
+            return "filled"
 
     def modIndex(self, idx):
         if 0 <= idx <= 2:
@@ -76,8 +132,9 @@ class Board:
 
 board = Board("board1.txt")
 
-print(board.getAvailableInSubBoard(0, 0))
-print(board.getAvailableInRow(0))
-print(board.getAvaliableInColumn(0))
-print(board.getElement(2, 0))
-print(board.getAvaliableInSpace(2, 2))
+print(board.createSolvedBoard())
+#print(board.getAvailableInSubBoard(0, 0))
+#print(board.getAvailableInRow(0))
+#print(board.getAvaliableInColumn(0))
+#print(board.getElement(2, 0))
+#print(board.getAvaliableInSpace(2, 2))
