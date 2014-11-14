@@ -13,9 +13,9 @@ class Board:
         # select 9 random locations from the free pool and put numbers 1 - 9 in them
         for i in range(1,10):
             location = random.choice(self.freePool)
-            x = location[0]
-            y = location[1]
-            self.wholeBoard[x][y] = i
+            row = location[0]
+            col = location[1]
+            self.wholeBoard[row][col] = i
             self.freePool.remove(location)
 
 
@@ -24,7 +24,7 @@ class Board:
         # while there are still free elements
         while(len(self.freePool)> 0):
             location = random.choice(self.freePool)  #get a random free location
-            potential = self.getPotential(tried,location[0],location[1])  #get the available elements for that location
+            potential = self.getPotential(tried,row,col)  #get the available elements for that location
             if(len(potential) ==0):
                 while(len(potential) == 0):
                     if(len(iterations) ==0):
@@ -37,7 +37,7 @@ class Board:
                     potential = self.getPotential(tried,lastTried[0],lastTried[1])
 
             answer = random.choice(potential)
-            self.wholeBoard[location[0],location[1]] = answer
+            self.wholeBoard[row,col] = answer
             iterations.append(location)
             self.freePool.remove(location)
             if(location not in tried):
@@ -71,15 +71,15 @@ class Board:
         else:
             return True
 
-    def getPotential(self,tried,location,x,y):
-        potential = self.getAvailableInSpace(self,x,y)
-        if (x,y) in tried:    
-            for ele in tried(x,y):
+    def getPotential(self,tried,row,col):
+        potential = self.getAvailableInSpace(self,row,col)
+        if (row,col) in tried:    
+            for ele in tried(row,col):
                 potential.remove(ele)
         return potential
 
-    def getElement(self, x, y):
-        return self.wholeBoard[y][x]
+    def getElement(self, row, col):
+        return self.wholeBoard[row][col]
 
     def getColumn(self, index):
         return  [row[index] for row in self.wholeBoard]
@@ -89,20 +89,20 @@ class Board:
 
     #starting at 0 - 2
 
-    def getSubBoardAsList(self, xs, ys):
+    def getSubBoardAsList(self, rows, cols):
         subBoardAsList = []
-        for y in range((ys*3), ((ys+1)*3)):
-            for x in range((xs*3), ((xs+1)*3)):
+        for y in range((rows*3), ((rows+1)*3)):
+            for x in range((cols*3), ((cols+1)*3)):
                 val = self.wholeBoard[y][x]
                 subBoardAsList.append(val)
         return subBoardAsList
 
-    def getAvaliableInSpace(self, x, y):
-        if self.getElement(x, y) == 0:
+    def getAvaliableInSpace(self, row, col):
+        if self.getElement(row, col) == 0:
             fullList = [i for i in range(1, 10)]
-            rowAvail = self.getAvailableInRow(y)
-            colAvail = self.getAvaliableInColumn(x)
-            subAvail = self.getAvailableInSubBoard(self.modIndex(x), self.modIndex(y))
+            rowAvail = self.getAvailableInRow(row)
+            colAvail = self.getAvaliableInColumn(col)
+            subAvail = self.getAvailableInSubBoard(self.modIndex(row), self.modIndex(col))
 
             filterLambda = lambda x: (x in rowAvail) and (x in colAvail) and (x in subAvail)
             return filter(filterLambda, fullList)
@@ -117,14 +117,14 @@ class Board:
         if 5 < idx <= 8:
             return 2
 
-    def getAvailableInSubBoard(self, x, y):
-        list = self.getSubBoardAsList(x, y)
+    def getAvailableInSubBoard(self, row, col):
+        list = self.getSubBoardAsList(row, col)
         return self.getAvailableInList(list)
-    def getAvailableInRow(self, y):
-        list = self.getRow(y)
+    def getAvailableInRow(self, row):
+        list = self.getRow(row)
         return self.getAvailableInList(list)
-    def getAvaliableInColumn(self, x):
-        list = self.getColumn(x)
+    def getAvaliableInColumn(self, col):
+        list = self.getColumn(col)
         return self.getAvailableInList(list)
 
     def getAvailableInList(self, list):
