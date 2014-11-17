@@ -20,25 +20,32 @@ class Board:
 
 
         tried = {}
-        iterations = []
+        path = []
         # while there are still free elements
         while(len(self.freePool)> 0):
             location = random.choice(self.freePool)  #get a random free location
-            potential = self.getPotential(tried,row,col)  #get the available elements for that location
+            row = location[0]
+            col = location[1]
+            potential = self.getAvaliableInSpace(row,col)  #get the available elements for that location
             if(len(potential) ==0):
                 while(len(potential) == 0):
-                    if(len(iterations) ==0):
+                    if(len(path) ==0):
                         print("Puzzle could not be created") #This should hopefully never happen
                         break
-                    lastTried = iterations[-1]
-                    iterations.remove(lastTried)
+                    lastTried = path[-1]
+                    path.remove(lastTried)
                     self.wholeBoard[lastTried[0],lastTried[1]] = 0
                     self.freePool.append(lastTried)
-                    potential = self.getPotential(tried,lastTried[0],lastTried[1])
+                    potential = self.getAvaliableInSpace(lastTried[0],lastTried[1])
+                    for ele in tried[lastTried]:
+                        potential.remove(ele)
+                    if len(potential) == 0:
+                        del tried[lastTried]
+                    
 
             answer = random.choice(potential)
             self.wholeBoard[row,col] = answer
-            iterations.append(location)
+            path.append(location)
             self.freePool.remove(location)
             if(location not in tried):
                 tried[location] = [answer]
@@ -70,13 +77,6 @@ class Board:
             return False
         else:
             return True
-
-    def getPotential(self,tried,row,col):
-        potential = self.getAvailableInSpace(self,row,col)
-        if (row,col) in tried:    
-            for ele in tried(row,col):
-                potential.remove(ele)
-        return potential
 
     def getElement(self, row, col):
         return self.wholeBoard[row][col]
