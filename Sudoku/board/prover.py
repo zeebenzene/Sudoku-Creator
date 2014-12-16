@@ -11,45 +11,46 @@ class Prover():
         newBoard.removeElement(x, y)
 
         freeLocs = self.board.getFreeLocations()
-        possibleValsForLoc = self.createPossibleValsDict(freeLocs, newBoard)
+        possibleNums = self.createPossibleNumsDict(freeLocs, newBoard)
 
-        self.proveBoard(newBoard, freeLocs, possibleValsForLoc, 0, [])
+        self.proveBoard(newBoard, freeLocs, possibleNums, 0, [])
         if self.count > 1:
             return False
         elif self.count == 1:
             # print("1 count")
             return True
 
-    def createPossibleValsDict(self, freeLocs, newBoard):
+    def createPossibleNumsDict(self, freeLocs, newBoard):
         possibleNums = {}
         for loc in freeLocs:
             possibleNums[loc] = newBoard.getAvailableInSpace(loc[0], loc[1])
         return possibleNums
 
 
-    def proveBoard(self, board, freeLocs, possibleValsForLoc, curIdx, prevLocs):
+    def proveBoard(self, board, freeLocs, possibleNums, curIdx, prevCombos):
         curLoc = freeLocs[curIdx]
-        possibleValsInLoc = possibleValsForLoc[curLoc] #possible nums for this location
-        for num in possibleValsInLoc:
+        possible = possibleNums[curLoc] #possible nums for this location
+        for num in possible:
             #check to see if new num is valid considering the previous
-            valid = self.locIsValid(num, curLoc, curIdx, prevLocs, freeLocs)
+            valid = self.numIsValid(num, curLoc, curIdx, prevCombos, freeLocs)
             #if num is valid then
             if(valid):
-                newPrevLocs = prevLocs
-                newPrevLocs.append(num)
-                if len(newPrevLocs) == len(freeLocs):
+                newCombo = prevCombos
+                newCombo.append(num)
+                if len(newCombo) == len(freeLocs):
                     self.count += 1
                     if(self.count > 1):
                         return
                 else:
-                    self.proveBoard(board, freeLocs, possibleValsForLoc, curIdx + 1, newCombo)
+                    self.proveBoard(board, freeLocs, possibleNums, curIdx + 1, newCombo)
 
-    def locIsValid(self, newVal, curLoc, curIdx, prevLocs, freeLocs):
-        x1, y1 = curLoc
-        for loc in prevLocs:
-            x2, y2 = loc
+    def numIsValid(self, num, curLoc, curIdx, prevCombos, freeLocs):
+        for idx in range(curIdx):
+            prevLoc = freeLocs[idx]
+            x1, y1 = curLoc
+            x2, y2 = prevLoc
             if self.locInSameColRowSub(x1, y1, x2, y2):
-                if newVal == prevLocs[idx]:
+                if num == prevCombos[idx]:
                     return False
         return True
 
