@@ -7,9 +7,9 @@ class Board:
             self.wholeBoard = self.openBoard(boardName)
         else:
             self.wholeBoard = [[0 for i in range(1,10)] for x in range(9)]
-            self.freePool = self.getFreeLocations()
-            self.createBoardSeed()
-            self.createSolvedBoard()
+            # self.freePool = self.getFreeLocations()
+            # self.createBoardSeed()
+            # self.createSolvedBoard()
 
     def createBoardSeed(self):
         for i in range(1,10):
@@ -196,6 +196,3 @@ class Board:
     def prettyPrint(self):
         for row in self.wholeBoard:
             print(row)
-
-board = Board('')
-board.prettyPrint()
