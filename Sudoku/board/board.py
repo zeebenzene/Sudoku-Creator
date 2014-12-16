@@ -132,53 +132,39 @@ class Board:
     def modIndex(self, idx):
         return idx/3
 
-    def solve(self):
-        emptySpaces = self.getFreeLocations()
-        lastCount = len(emptySpaces)
-        tier = 0
-        while lastCount > 0:
-            for ele in emptySpaces:
-                if tier == 0:
-                    possibleValues = self.getAvailableInSpace(ele[0],ele[1])
-                    if len(possibleValues) == 1:
-                        print(len(emptySpaces))
-                        print("Tier 0")
-                        self.prettyPrint()
-                        print(possibleValues)
-                        print(ele)
-                        self.wholeBoard[ele[0]][ele[1]] = possibleValues[0]
-                        emptySpaces.remove(ele)
-                elif tier == 1:
-                    rowIndex = self.modIndex(ele[0])
-                    colIndex = self.modIndex(ele[1])
-                    emptySubBoardSpaces =  self.getEmptySpacesInSubBoard(rowIndex,colIndex)
-                    availableInSpaces = []
-                    possibleValues = self.getAvailableInSpace(ele[0],ele[1])
-                    for space in emptySubBoardSpaces:
-                        if space != ele:
-                            availableInSpaces.append(self.getAvailableInSpace(space[0],space[1]))
-                    for available in availableInSpaces:
-                        for elt in available:
-                            if elt in possibleValues:
-                                possibleValues.remove(elt)
-                    if len(possibleValues) == 1:
-                        print("Tier 1")
-                        print(len(emptySpaces))
-                        self.prettyPrint()
-                        print(possibleValues)
-                        print(ele)
-                        self.wholeBoard[ele[0]][ele[1]] = possibleValues[0]
-                        emptySpaces.remove(ele)
+    def checkForInvisNums(self, rowIdx,colIdx,location):
+        res = []
+        for ele in [0,1,2]:
+            if rowIdx !=ele:
+                emptySpaces = self.getEmptySpacesInSubBoard(ele,colIdx)
+                sameRowPotential = []
+                differentRowPotential = []
+                for space in emptySpaces:
+                    if space[0] == location[0]:
+                        sameRowPotential += self.getAvailableInSpace(space[0],space[1])
+                    else:
+                        differentRowPotential += self.getAvailableInSpace(space[0],space[1])
+                for answer in sameRowPotential:
+                    if answer not in differentRowPotential:
+                        if answer not in res:
+                            res.append(answer)
+        for ele2 in [0,1,2]:
+            if colIdx !=ele2:
+                emptySpaces = self.getEmptySpacesInSubBoard(rowIdx,ele2)
+                sameColPotential = []
+                differentColPotential = []
+                for space in emptySpaces:
+                    if space[1] == location[1]:
+                        sameColPotential += self.getAvailableInSpace(space[0],space[1])
+                    else:
+                        differentColPotential += self.getAvailableInSpace(space[0],space[1])
+                for answer in sameColPotential:
+                    if answer not in differentColPotential:
+                        if answer not in res:
+                            res.append(answer)
+        return res
 
-            if len(emptySpaces) == lastCount:
-                if(tier == 1):
-                    break
-                else:
-                    tier +=1
-            else:
-                if(tier >0):
-                    tier -=1
-                lastCount = len(emptySpaces)
+
     def getAvailableInSubBoard(self, x, y):
         list = self.getSubBoardAsList(x, y)
         return self.getAvailableInList(list)
@@ -197,5 +183,3 @@ class Board:
         for row in self.wholeBoard:
             print(row)
 
-board = Board('')
-board.prettyPrint()
