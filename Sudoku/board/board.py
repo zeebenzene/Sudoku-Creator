@@ -7,9 +7,6 @@ class Board:
             self.wholeBoard = self.openBoard(boardName)
         else:
             self.wholeBoard = [[0 for i in range(1,10)] for x in range(9)]
-            # self.freePool = self.getFreeLocations()
-            # self.createBoardSeed()
-            # self.createSolvedBoard()
 
     def createBoardSeed(self):
         for i in range(1,10):
@@ -18,55 +15,6 @@ class Board:
             col = location[1]
             self.wholeBoard[row][col] = i
             self.freePool.remove(location)
-
-    def createSolvedBoard(self):
-        tried = {}
-        path = []
-        self.prettyPrint()
-        count = 0
-        # while there are still free elements
-        while(len(self.freePool)> 0):
-            location = random.choice(self.freePool)  #get a random free location
-            row = location[0]
-            col = location[1]
-            potential = self.getAvailableInSpace(row,col)  #get the available elements for that location
-
-            if(len(potential) ==0):
-                while(len(potential) == 0):
-                    if(len(path) ==0):
-                        print("Puzzle could not be created") #This should hopefully never happen
-                        return 0
-                    lastTried = path[-1]
-
-                    self.freePool.append(lastTried)
-                    path.remove(lastTried)
-                    self.wholeBoard[lastTried[0]][lastTried[1]] = 0
-                    potential = self.getAvailableInSpace(lastTried[0],lastTried[1])
-                    for ele in tried[lastTried]:
-                        if ele in potential:
-                            potential.remove(ele)
-                    if len(potential) == 0:
-                        del tried[lastTried]
-                    else:
-                        location = lastTried
-                        row = lastTried[0]
-                        col = lastTried[1]
-
-            self.freePool.remove(location)
-            answer = random.choice(potential)
-            self.wholeBoard[row][col] = answer
-            path.append(location)
-            if(count <20):
-                print(location)
-                print(answer)
-                print(potential)
-                self.prettyPrint()
-                count += 1
-            if(location not in tried):
-                tried[location] = [answer]
-            else:
-                tried[location].append(answer)
-        return 1
 
     def createBlankBoard(self):
         return [[0 for i in range(1, 10)] for x in range(9)]
@@ -83,9 +31,11 @@ class Board:
 
 
     def getElement(self, row, col):
-        return self.wholeBoard[row][col]
+        return self.wholeBoard[col][row]
     def removeElement(self, row, col):
-        self.wholeBoard[row][col] = 0
+        self.wholeBoard[col][row] = 0
+    def setElement(self, row, col, val):
+        self.wholeBoard[col][row] = val
 
     def getColumn(self, index):
         return  [row[index] for row in self.wholeBoard]
@@ -105,10 +55,10 @@ class Board:
     def getAvailableInSpace(self, x, y):
          if self.getElement(x, y) == 0:
             fullList = [i for i in range(1, 10)]
-            rowAvail = self.getAvailableInRow(x)
-            colAvail = self.getAvaliableInColumn(y)
-            subAvail = self.getAvailableInSubBoard(self.modIndex(x), self.modIndex(y))
-            filterLambda = lambda x: (x in rowAvail) and (x in colAvail) and (x in subAvail)
+            rowAvail = self.getAvailableInRow(y)
+            colAvail = self.getAvaliableInColumn(x)
+            subAvail = self.getAvailableInSubBoard(self.modIndex(y), self.modIndex(x))
+            filterLambda = lambda z: (z in rowAvail) and (z in colAvail) and (z in subAvail)
             return filter(filterLambda, fullList)
          else:
              return "filled"
@@ -132,53 +82,6 @@ class Board:
     def modIndex(self, idx):
         return idx/3
 
-    def solve(self):
-        emptySpaces = self.getFreeLocations()
-        lastCount = len(emptySpaces)
-        tier = 0
-        while lastCount > 0:
-            for ele in emptySpaces:
-                if tier == 0:
-                    possibleValues = self.getAvailableInSpace(ele[0],ele[1])
-                    if len(possibleValues) == 1:
-                        print(len(emptySpaces))
-                        print("Tier 0")
-                        self.prettyPrint()
-                        print(possibleValues)
-                        print(ele)
-                        self.wholeBoard[ele[0]][ele[1]] = possibleValues[0]
-                        emptySpaces.remove(ele)
-                elif tier == 1:
-                    rowIndex = self.modIndex(ele[0])
-                    colIndex = self.modIndex(ele[1])
-                    emptySubBoardSpaces =  self.getEmptySpacesInSubBoard(rowIndex,colIndex)
-                    availableInSpaces = []
-                    possibleValues = self.getAvailableInSpace(ele[0],ele[1])
-                    for space in emptySubBoardSpaces:
-                        if space != ele:
-                            availableInSpaces.append(self.getAvailableInSpace(space[0],space[1]))
-                    for available in availableInSpaces:
-                        for elt in available:
-                            if elt in possibleValues:
-                                possibleValues.remove(elt)
-                    if len(possibleValues) == 1:
-                        print("Tier 1")
-                        print(len(emptySpaces))
-                        self.prettyPrint()
-                        print(possibleValues)
-                        print(ele)
-                        self.wholeBoard[ele[0]][ele[1]] = possibleValues[0]
-                        emptySpaces.remove(ele)
-
-            if len(emptySpaces) == lastCount:
-                if(tier == 1):
-                    break
-                else:
-                    tier +=1
-            else:
-                if(tier >0):
-                    tier -=1
-                lastCount = len(emptySpaces)
     def getAvailableInSubBoard(self, x, y):
         list = self.getSubBoardAsList(x, y)
         return self.getAvailableInList(list)

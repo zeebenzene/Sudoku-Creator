@@ -1,97 +1,116 @@
 from board import Board
-
+from random import randrange
 
 class Prover():
     def __init__(self, board):
         self.board = board
+        self.boardToProve = board
         self.count = 0
 
     def isRemoveValid(self, x, y):
-        newBoard = self.board
-        newBoard.removeElement(x, y)
+        self.boardToProve = self.board
+        self.boardToProve.setElement(x, y, 0)
 
-        remainingLocs = self.board.getFreeLocations()
-        possibleValsForFreelocs = self.getPossibleValsForLocs(remainingLocs, newBoard)
+        freelocs = self.boardToProve.getFreeLocations()
+        possibleValsForLoc = self.getPossibleValsForLocs(freelocs, self.boardToProve)
+        print "\n\npossible vals: " + str(possibleValsForLoc)
 
-        self.proveBoard(newBoard, remainingLocs, possibleValsForFreelocs, 0, [])
-        if self.count > 1:
+        self.recursivelyFillWholeBoard(0, {}, freelocs, possibleValsForLoc)
+
+        if(self.count > 1):
+            return False
+        elif self.count == 0:
             return False
         elif self.count == 1:
-            # print("1 count")
             return True
 
-    def remove(self, x, y):
-        self.board.removeElement(x, y)
 
-    def getPossibleValsForLocs(self, freeLocs, newBoard):
-        possibleNums = {}
-        for loc in freeLocs:
-            x, y = loc
-            possibleNums[loc] = newBoard.getAvailableInSpace(x, y)
-        return possibleNums
+    def recursivelyFillWholeBoard(self, curIdx, prevLocToVals, freelocs, possibleValsForLoc):
+        # print(prevLocToVals)
+        # if(self.count <= 1):
+            #loop through the remaining spots
+        if len(prevLocToVals) < len(freelocs):
+            curloc = freelocs[curIdx]
+            possiblevals = possibleValsForLoc[curloc]
 
-    def proveBoard(self, board, remainingLocs, possibleNums, curIdx, prevLocs):
-        if curIdx <= len(remainingLocs)-1:
-            curLoc = remainingLocs[curIdx] #check all previous locs
-            possible = possibleNums[curLoc] #possible nums for this location
-            for num in possible:
-                #check to see if new num is valid considering the previous
-                valid = self.numIsValid(num, curLoc, prevLocs, possibleNums)
-                #if num is valid then
-                if(valid):
-                    newPrev = prevLocs
-                    newPrev.append(curLoc)
-                    if len(newPrev) == len(remainingLocs):
-                        print('ending')
-                        self.count += 1
-                        # return
-                        # if(self.count > 1):
-                        #     return
-                    else:
-                        self.proveBoard(board, remainingLocs, possibleNums, curIdx + 1, newPrev)
+            for val in possiblevals:
+                valid = self.numIsValid(val, curloc, prevLocToVals)
+                if valid:
+                    prevLocToVals[curloc] = val
+                    self.recursivelyFillWholeBoard(curIdx+1, prevLocToVals, freelocs, possibleValsForLoc)
+                    #have a call for each possible valid value to continue filling it up
+                    #end if there's more than one
 
-    def numIsValid(self, num, curLoc, prevLocs, possibleNums):
+
+        else:
+            # print prevLocToVals
+            self.printRestoredBoard(self.boardToProve, prevLocToVals)
+            self.count += 1
+
+
+    def numIsValid(self, num, curLoc, prevLocToVals):
         x1, y1 = curLoc
-        neighborhood = self.getNeighborhood(curLoc, prevLocs)
-        for loc in neighborhood:
-            if num == possibleNums[loc]:
-                return False
+        neighborhood = self.getNeighborhood(curLoc, prevLocToVals)
+        if num in neighborhood:
+            return False
         return True
 
-    def getNeighborhood(self, curLoc, prevLocs):
+    def getNeighborhood(self, curLoc, prevLocToVals):
         x1, y1 = curLoc
         neighborhood = []
-        for loc in prevLocs:
+        for loc in prevLocToVals.keys():
             x2, y2 = loc
-            if self.locInSameColRowSub(x1, y1, x2, y2) :
-                neighborhood.append(loc)
+            if self.locInSameColRowSub(x1, y1, x2, y2):
+                neighborhood.append(prevLocToVals[loc])
         return neighborhood
 
     def locInSameColRowSub(self, x1, y1, x2, y2):
         board = self.board
-        if x1 == x2 or y1 == y2 :
+        if x1 == x2 and y1 == y2:
+            return False
+        if x1 == x2 or y1 == y2:
             return True
         elif board.modIndex(x1) == board.modIndex(x2) and board.modIndex(y1) == board.modIndex(y2):
             return True
         else:
             return False
 
+    def printRestoredBoard(self, newboard, locToVals):
+        print('restored board: ')
+        for loc in locToVals:
+            newboard.setElement(loc[0], loc[1], locToVals[loc])
+        newboard.prettyPrint()
+        print '\n'
+        for loc in locToVals:
+            newboard.removeElement(loc[0], loc[1])
+
+    def getPossibleValsForLocs(self, freeLocs, newBoard):
+        possibleNums = {}
+        for loc in freeLocs:
+            x, y = loc
+            # print(newBoard.getAvailableInSpace(x, y))
+            possibleNums[loc] = newBoard.getAvailableInSpace(x, y)
+        return possibleNums
+
 board = Board("solved.txt")
 board.prettyPrint()
 
 prover = Prover(board)
+
 cont = True
-for x in range(9):
-    for y in range(9):
-        if(cont):
-            prover = Prover(board)
-            if(prover.isRemoveValid(x, y)):
-                print('\n\n')
-                # prover.remove(x, y)
-                board.removeElement(x, y)
-                board.prettyPrint()
-            else:
-                print('COUDL NOT')
-                print '\n\n'
-                board.prettyPrint()
-                cont = False
+for i in range(30):
+    x = randrange(9)
+    y = randrange(9)
+    if(cont):
+        prover = Prover(board)
+        if(prover.isRemoveValid(x, y)):
+            board.removeElement(x, y)
+            board.prettyPrint()
+            print('\n')
+
+        else:
+            board.removeElement(x, y)
+            board.prettyPrint()
+            print('REMOVE NOT VALID: ' + str(x) + ", " +  str(y))
+            print("INVALID BOARD:")
+            cont = False
