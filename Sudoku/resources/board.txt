@@ -170,16 +170,6 @@ class Board:
         return filter(lambda x: x not in list, fullList)
 
     def prettyPrint(self):
-        lines = []
         for row in self.wholeBoard:
-            line = ""
-            for value in row:
-                if value > 0:
-                    toAppend = value
-                else:
-                    toAppend = "_"
-                line += str(toAppend) + " "
-            lines.append(line)
-        for line in lines:
-            print line
+            print(row)
 
